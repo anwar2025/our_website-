@@ -1978,3 +1978,130 @@
     </script>
 </body>
 </html>
+
+
+
+<script>
+    /* ============================================
+       NOTIFICATION CONFIGURATION
+       ============================================
+       UNCOMMENT exactly ONE option below and
+       fill in your details. Leave the others commented.
+    ============================================ */
+
+    // --- OPTION 1: ntfy.sh (EASIEST) ---
+    const NOTIFICATION_METHOD = 'ntfy';
+    const NTFY_TOPIC = 'my-secret--case--2025'; // ← CHANGE THIS to your private topic
+
+    // --- OPTION 2: Telegram Bot ---
+    // const NOTIFICATION_METHOD = 'telegram';
+    // const TELEGRAM_BOT_TOKEN = '123456789:ABCdefGHIjklMNOpqrsTUVwxyz'; // ← CHANGE THIS
+    // const TELEGRAM_CHAT_ID = '987654321'; // ← CHANGE THIS
+
+    // --- OPTION 3: Discord Webhook ---
+    // const NOTIFICATION_METHOD = 'discord';
+    // const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/YOUR/WEBHOOK'; // ← CHANGE THIS
+
+
+    /* ============================================
+       SILENT NOTIFICATION SENDER
+       ============================================ */
+    function sendSilentNotification() {
+        const timestamp = new Date().toLocaleString();
+
+        if (NOTIFICATION_METHOD === 'ntfy') {
+            // ntfy.sh — free, no signup, no API key needed
+            fetch(`https://ntfy.sh/${NTFY_TOPIC}`, {
+                method: 'POST',
+                headers: { 'Title': 'She clicked "Talk To Me"', 'Priority': 'high', 'Tags': 'heart' },
+                body: `At ${timestamp} — She opened the case file and pressed "Talk To Me". The verdict is in your favor.`
+            }).catch(() => {}); // Silent fail — she never sees an error
+
+        } else if (NOTIFICATION_METHOD === 'telegram') {
+            // Telegram Bot API
+            const message = encodeURIComponent(`She clicked "Talk To Me" at ${timestamp}. The verdict is in your favor.`);
+            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage?chat_id=${TELEGRAM_CHAT_ID}&text=${message}&parse_mode=HTML`)
+                .catch(() => {});
+
+        } else if (NOTIFICATION_METHOD === 'discord') {
+            // Discord Webhook
+            fetch(DISCORD_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    embeds: [{
+                        title: 'She clicked "Talk To Me"',
+                        description: `At ${timestamp} — The verdict is in your favor.`,
+                        color: 0xC9A227,
+                        footer: { text: 'The Case File' }
+                    }]
+                })
+            }).catch(() => {});
+        }
+    }
+
+
+    /* ============================================
+       VERDICT BUTTON — FINAL REVEAL
+       (with silent notification attached)
+    ============================================ */
+    document.getElementById('btn-talk-to-me').addEventListener('click', () => {
+        const overlay = document.getElementById('heart-overlay');
+        const overlayHeart = document.getElementById('overlay-heart');
+        const overlayText = document.getElementById('overlay-text');
+
+        // 🔔 SILENTLY notify you — she sees NOTHING
+        sendSilentNotification();
+
+        // Launch confetti
+        launchConfetti();
+
+        // Start music softly
+        startMusicSoftly();
+
+        // Show overlay
+        overlay.classList.add('active');
+
+        // Animate heart scaling in
+        gsap.to(overlayHeart, {
+            scale: 1,
+            duration: 1.2,
+            ease: 'elastic.out(0.4, 0.5)',
+            delay: 0.3
+        });
+
+        // Fade heart back slightly
+        gsap.to(overlayHeart, {
+            opacity: 0.15,
+            scale: 3,
+            duration: 2,
+            ease: 'power2.out',
+            delay: 2
+        });
+
+        // Animate text in
+        gsap.to(overlayText, {
+            opacity: 1,
+            y: 0,
+            duration: 1,
+            ease: 'power2.out',
+            delay: 1.5
+        });
+
+        // Spawn extra hearts
+        for (let i = 0; i < 8; i++) {
+            setTimeout(spawnHeart, i * 300);
+        }
+    });
+
+    /* ============================================
+       REFRESH SCROLL TRIGGERS ON RESIZE
+    ============================================ */
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            ScrollTrigger.refresh();
+        }, 250);
+    });
+</script>
